@@ -22,7 +22,7 @@ export const getProductsByCategory = async (req, res, next) => {
     const result = await pool.request()
       .input('code', sql.Char(4), code)
       .query(`
-        SELECT p.product_code AS code, p.product_name AS name, p.price, p.stock
+        SELECT p.product_code AS code, p.product_name AS name, p.price, p.stock, p.image_url
         FROM products p
         WHERE p.category_code = @code
         ORDER BY p.product_code

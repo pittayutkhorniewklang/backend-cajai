@@ -5,7 +5,7 @@ export const getProducts = async (req, res, next) => {
     try {
         const pool = await getPool();
         const result = await pool.request().query(`
-      SELECT p.product_code AS code, p.product_name AS name, p.price, p.stock,
+      SELECT p.product_code AS code, p.product_name AS name, p.price, p.stock, p.image_url,
              c.category_code, c.category_name
       FROM products p
       JOIN categories c ON c.category_code = p.category_code
@@ -20,7 +20,7 @@ export const getProducts = async (req, res, next) => {
 // เพิ่มสินค้าใหม่
 export const createProduct = async (req, res, next) => {
     try {
-        const { code, name, price, stock = 0, categoryCode } = req.body;
+        const { code, name, price, stock = 0, categoryCode , image_Url} = req.body;
         const pool = await getPool();
         await pool.request()
             .input('code', sql.Char(4), code)
@@ -28,12 +28,13 @@ export const createProduct = async (req, res, next) => {
             .input('price', sql.Decimal(10, 2), price)
             .input('stock', sql.Int, stock)
             .input('cat', sql.Char(4), categoryCode)
+            .input('image_url', sql.VarChar(255), image_Url)
             .query(`
-        INSERT INTO products(product_code, product_name, price, stock, category_code)
-        VALUES (@code, @name, @price, @stock, @cat)
+        INSERT INTO products(product_code, product_name, price, stock, category_code, image_url)
+        VALUES (@code, @name, @price, @stock, @cat, @image_url)
       `);
 
-        res.status(201).json({ code, name, price, stock, categoryCode });
+        res.status(201).json({ code, name, price, stock, categoryCode, image_Url });
     } catch (err) {
         // ตรวจจับ error duplicate (รหัสซ้ำ)
         if (err.number === 2627) {
