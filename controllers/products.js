@@ -6,13 +6,26 @@ export const getProducts = async (req, res, next) => {
 
     try {
         const pool = await getPool();
-        const result = await pool.request().query(`
-      SELECT p.product_code AS code, p.product_name AS name, p.price, p.stock, p.image_url,
-             c.category_code, c.category_name
-      FROM products p
-      JOIN categories c ON c.category_code = p.category_code
-      ORDER BY p.product_code
-    `);
+        
+        // ถ้ามีคำค้นหาจากผู้ใช้
+        let sqlQuery = `
+            SELECT p.product_code AS code, p.product_name AS name, p.price, p.stock, p.image_url,
+                   c.category_code, c.category_name
+            FROM products p
+            JOIN categories c ON c.category_code = p.category_code
+        `;
+
+        // ถ้ามีคำค้นหา เพิ่มเงื่อนไข WHERE เพื่อค้นหาชื่อสินค้าที่ตรงกับคำค้นหา
+          if (query) {
+            // ใช้ parameterized query เพื่อหลีกเลี่ยง SQL injection
+            sqlQuery += ` WHERE p.product_name LIKE @query`; // ใช้ @query ใน SQL
+        }
+        // จัดเรียงข้อมูลตาม product_code
+        sqlQuery += ' ORDER BY p.product_code';
+
+        const result = await pool.request()
+            .input('query', sql.VarChar(150), `%${query}%`) // กำหนดค่าให้กับ @query
+            .query(sqlQuery);
         res.json(result.recordset);
     } catch (err) {
         next(err);
