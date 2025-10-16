@@ -30,5 +30,5 @@ export const getProductsByCategory = async (req, res, next) => {
     res.json(result.recordset);
   } catch (err) {
     next(err);
-  }s
+  }
 };
